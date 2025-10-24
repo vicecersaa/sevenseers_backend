@@ -4,7 +4,7 @@ const MainSection = require('../models/MainSection');
 exports.getMainSection = async (req, res) => {
   try {
     const main = await MainSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!main) {
       return res.json({
@@ -34,12 +34,12 @@ exports.updateMainSection = async (req, res) => {
     // Update fields
     main.title = title || main.title;
     main.videoSrc = videoSrc
-      ? videoSrc.replace("http://localhost:5000", "")
+      ? videoSrc.replace("https://sevenseers.id", "")
       : main.videoSrc;
 
     await main.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     res.json({
       videoSrc: main.videoSrc ? `${baseUrl}${main.videoSrc}` : "",

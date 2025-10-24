@@ -4,7 +4,7 @@ const HowWeElevateSection = require("../models/HowWeElevateSection");
 exports.getHowWeElevateSection = async (req, res) => {
   try {
     const section = await HowWeElevateSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!section) {
       return res.json({
@@ -58,7 +58,7 @@ exports.updateHowWeElevateSection = async (req, res) => {
         images: Array.isArray(card.images)
           ? card.images.map((img) => ({
               // Simpan src relative ke folder /uploads saja
-              src: img.src ? img.src.replace(process.env.BASE_URL || "http://localhost:5000", "").replace("/uploads/howwelevate", "/uploads") : "",
+              src: img.src ? img.src.replace(process.env.BASE_URL || "https://sevenseers.id", "").replace("/uploads/howwelevate", "/uploads") : "",
               caption: img.caption || "",
             }))
           : [],
@@ -67,7 +67,7 @@ exports.updateHowWeElevateSection = async (req, res) => {
 
     await section.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
     const responseCards = section.cards.map((card) => ({
       ...card._doc,
       images: card.images.map((img) => ({

@@ -4,7 +4,7 @@ const NavbarSection = require('../models/NavbarSection');
 exports.getNavbar = async (req, res) => {
   try {
     const navbar = await NavbarSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!navbar) {
       return res.json({
@@ -34,7 +34,7 @@ exports.updateNavbar = async (req, res) => {
     if (!navbar) navbar = new NavbarSection();
 
     navbar.logo = logo
-      ? logo.replace("http://localhost:5000", "")
+      ? logo.replace("https://sevenseers.id", "")
       : navbar.logo;
 
     navbar.ctaText = ctaText || navbar.ctaText;
@@ -42,7 +42,7 @@ exports.updateNavbar = async (req, res) => {
 
     await navbar.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     res.json({
       logo: navbar.logo ? `${baseUrl}${navbar.logo}` : "",

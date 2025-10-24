@@ -4,7 +4,7 @@ const ClientSection = require('../models/ClientSection');
 exports.getClientSection = async (req, res) => {
   try {
     const client = await ClientSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!client) {
       return res.json({
@@ -39,12 +39,12 @@ exports.updateClientSection = async (req, res) => {
 
     // Replace semua logo (tidak concat)
     if (logos && Array.isArray(logos)) {
-      client.logos = logos.map(l => l.replace("http://localhost:5000", ""));
+      client.logos = logos.map(l => l.replace("https://sevenseers.id", ""));
     }
 
     await client.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
     const allLogos = client.logos.map((logo) =>
       logo.startsWith("http") ? logo : `${baseUrl}${logo}`
     );

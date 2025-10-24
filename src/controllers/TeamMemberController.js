@@ -6,7 +6,7 @@ const fs = require('fs');
 exports.getTeamMemberSection = async (req, res) => {
   try {
     const section = await TeamMemberSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!section) {
       return res.json({
@@ -50,14 +50,14 @@ exports.updateTeamMemberSection = async (req, res) => {
         name: m.name || "",
         role: m.role || "",
         photo: m.photo
-          ? m.photo.replace("http://localhost:5000/uploads/team/", "/uploads/")
+          ? m.photo.replace("https://sevenseers.id/uploads/team/", "/uploads/")
           : "",
       }));
     }
 
     await section.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
     const membersWithFullPath = section.members.map((m) => ({
       ...m._doc,
       photo: m.photo ? `${baseUrl}${m.photo}` : "",

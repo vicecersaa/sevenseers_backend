@@ -4,7 +4,7 @@ const HeroSection = require('../models/HeroSection');
 exports.getHeroSection = async (req, res) => {
   try {
     const hero = await HeroSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!hero) {
       return res.json({

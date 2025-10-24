@@ -4,7 +4,7 @@ const BrandPartnerSection = require("../models/BrandPartnerSection");
 exports.getBrandPartnerSection = async (req, res) => {
   try {
     const section = await BrandPartnerSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!section) {
       return res.json({
@@ -52,14 +52,14 @@ exports.updateBrandPartnerSection = async (req, res) => {
         title: card.title || section.cards[idx]?.title || `Card ${idx + 1}`,
         caption: card.caption || section.cards[idx]?.caption || `Caption ${idx + 1}`,
         image: card.image
-          ? card.image.replace(process.env.BASE_URL || "http://localhost:5000", "")
+          ? card.image.replace(process.env.BASE_URL || "https://sevenseers.id", "")
           : section.cards[idx]?.image || "",
       }));
     }
 
     await section.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     const formattedCards = section.cards.map((card) => ({
       ...card._doc,

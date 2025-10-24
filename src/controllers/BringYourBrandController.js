@@ -4,7 +4,7 @@ const BringYourBrandSection = require('../models/BringYourBrandSection');
 exports.getBringYourBrandSection = async (req, res) => {
   try {
     const section = await BringYourBrandSection.findOne();
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.BASE_URL || 'https://sevenseers.id';
 
     if (!section) {
       return res.json({
@@ -42,7 +42,7 @@ exports.updateBringYourBrandSection = async (req, res) => {
 
     await section.save();
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.BASE_URL || 'https://sevenseers.id';
 
     res.json({
       backgroundImage: section.backgroundImage

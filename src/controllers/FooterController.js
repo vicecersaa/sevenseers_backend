@@ -75,7 +75,7 @@ exports.updateFooter = async (req, res) => {
 
     await footer.save();
 
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     res.json({
       topFooter: footer.topFooter,
