@@ -33,10 +33,40 @@ exports.updateNavbar = async (req, res) => {
     let navbar = await NavbarSection.findOne();
     if (!navbar) navbar = new NavbarSection();
 
-    // Simpan logo apa adanya
-    navbar.logo = logo || navbar.logo;
-    navbar.ctaText = ctaText || navbar.ctaText;
-    navbar.ctaLink = ctaLink || navbar.ctaLink;
+    // BERSIHKAN LOGO - ambil relative path aja
+    if (logo) {
+      let cleanLogo = logo;
+      
+      // 1. Hapus query parameter (?t=xxx) dulu
+      cleanLogo = cleanLogo.split('?')[0];
+      
+      // 2. Jika ada double URL (https://xxx.comhttps://xxx.com), ambil yang terakhir
+      const httpsCount = (cleanLogo.match(/https:\/\//g) || []).length;
+      if (httpsCount > 1) {
+        const lastIndex = cleanLogo.lastIndexOf('https://');
+        cleanLogo = cleanLogo.substring(lastIndex);
+      }
+      
+      // 3. Jika masih full URL, extract pathname aja
+      if (cleanLogo.startsWith('http://') || cleanLogo.startsWith('https://')) {
+        try {
+          const url = new URL(cleanLogo);
+          cleanLogo = url.pathname; // Ambil /uploads/xxx.png aja
+        } catch (e) {
+          console.error('URL parsing error:', e);
+          // Kalau parsing gagal, coba extract manual
+          if (cleanLogo.includes('/uploads/')) {
+            const uploadsIndex = cleanLogo.indexOf('/uploads/');
+            cleanLogo = cleanLogo.substring(uploadsIndex);
+          }
+        }
+      }
+      
+      navbar.logo = cleanLogo;
+    }
+    
+    if (ctaText !== undefined) navbar.ctaText = ctaText;
+    if (ctaLink !== undefined) navbar.ctaLink = ctaLink;
 
     await navbar.save();
 
