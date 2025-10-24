@@ -1,6 +1,6 @@
 const NavbarSection = require('../models/NavbarSection');
 
-// ✅ GET navbar data
+// GET navbar data
 exports.getNavbar = async (req, res) => {
   try {
     const navbar = await NavbarSection.findOne();
@@ -25,19 +25,16 @@ exports.getNavbar = async (req, res) => {
   }
 };
 
-// ✅ UPDATE navbar data
+// UPDATE navbar data
 exports.updateNavbar = async (req, res) => {
   try {
     const { logo, ctaText, ctaLink } = req.body;
 
-    // Ambil data navbar yang ada, kalau nggak ada buat baru
     let navbar = await NavbarSection.findOne();
     if (!navbar) navbar = new NavbarSection();
 
-    // ✅ Simpan logo baru apa adanya (baik path relatif /uploads/xxx.png atau full URL)
+    // Simpan logo baru apa adanya (relative path /uploads/xxx.png)
     navbar.logo = logo || navbar.logo;
-
-    // Update CTA text dan link
     navbar.ctaText = ctaText || navbar.ctaText;
     navbar.ctaLink = ctaLink || navbar.ctaLink;
 
