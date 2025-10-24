@@ -4,7 +4,6 @@ const TeamMemberSection = require('../models/TeamMemberSection');
 exports.getTeamMemberSection = async (req, res) => {
   try {
     const section = await TeamMemberSection.findOne();
-    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!section) {
       return res.json({
@@ -14,17 +13,11 @@ exports.getTeamMemberSection = async (req, res) => {
       });
     }
 
-    // Tambahkan baseUrl ke photo jika ada
-    const membersWithFullPath = section.members.map((m) => ({
-      name: m.name,
-      role: m.role,
-      photo: m.photo ? `${baseUrl}${m.photo}` : "",
-    }));
-
+    // Langsung kirim data dari DB apa adanya (tanpa baseUrl)
     res.json({
       title: section.title,
       caption: section.caption,
-      members: membersWithFullPath,
+      members: section.members || [],
     });
   } catch (err) {
     console.error("Get TeamMemberSection Error:", err);
@@ -44,40 +37,20 @@ exports.updateTeamMemberSection = async (req, res) => {
     section.caption = caption || section.caption;
 
     if (members && Array.isArray(members)) {
-      section.members = members.map((m) => {
-        let photoPath = m.photo || "";
-
-        // Jika user mengirim URL penuh, ambil hanya path relatif
-        if (photoPath.startsWith("http")) {
-          try {
-            const urlObj = new URL(photoPath);
-            photoPath = urlObj.pathname; // hanya /uploads/xxxx.jfif
-          } catch (e) {
-            console.error("Invalid URL:", photoPath);
-          }
-        }
-
-        return {
-          name: m.name || "",
-          role: m.role || "",
-          photo: photoPath, // simpan path relatif saja
-        };
-      });
+      section.members = members.map((m) => ({
+        name: m.name || "",
+        role: m.role || "",
+        photo: m.photo || "", // simpan full URL langsung dari frontend
+      }));
     }
 
     await section.save();
 
-    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
-    const membersWithFullPath = section.members.map((m) => ({
-      name: m.name,
-      role: m.role,
-      photo: m.photo ? `${baseUrl}${m.photo}` : "",
-    }));
-
+    // Langsung kirim data yang baru disimpan
     res.json({
       title: section.title,
       caption: section.caption,
-      members: membersWithFullPath,
+      members: section.members,
     });
   } catch (err) {
     console.error("Update TeamMemberSection Error:", err);
