@@ -1,3 +1,4 @@
+// controllers/navbarController.js
 const NavbarSection = require('../models/NavbarSection');
 
 // GET navbar data
@@ -32,7 +33,7 @@ exports.updateNavbar = async (req, res) => {
     let navbar = await NavbarSection.findOne();
     if (!navbar) navbar = new NavbarSection();
 
-    // Simpan logo apa adanya, frontend sudah kirim full URL
+    // Simpan logo apa adanya
     navbar.logo = logo || navbar.logo;
     navbar.ctaText = ctaText || navbar.ctaText;
     navbar.ctaLink = ctaLink || navbar.ctaLink;
