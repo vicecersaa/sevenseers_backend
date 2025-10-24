@@ -13,9 +13,10 @@ exports.getClientSection = async (req, res) => {
       });
     }
 
-    const logos = client.logos.map((logo) =>
-      logo.startsWith("http") ? logo : `${baseUrl}${logo}`
-    );
+    // Filter dan map logos dengan aman
+    const logos = client.logos
+      .filter(logo => logo && typeof logo === 'string') // Filter null/undefined
+      .map((logo) => logo.startsWith("http") ? logo : `${baseUrl}${logo}`);
 
     res.json({
       title: client.title || "Our Clients",
@@ -23,7 +24,7 @@ exports.getClientSection = async (req, res) => {
     });
   } catch (err) {
     console.error("Get ClientSection Error:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: err.message || "Failed to fetch client section" });
   }
 };
 
@@ -32,29 +33,57 @@ exports.updateClientSection = async (req, res) => {
   try {
     const { title, logos } = req.body;
 
+    // Validasi input logos
+    if (logos !== undefined && !Array.isArray(logos)) {
+      return res.status(400).json({ 
+        message: "Invalid logos data. Must be an array." 
+      });
+    }
+
     let client = await ClientSection.findOne();
-    if (!client) client = new ClientSection();
+    if (!client) {
+      client = new ClientSection();
+    }
 
-    if (title) client.title = title;
+    // Update title jika ada
+    if (title !== undefined && title !== null) {
+      client.title = title;
+    }
 
-    // Replace semua logo (tidak concat)
+    // Clean dan normalize logos
     if (logos && Array.isArray(logos)) {
-      client.logos = logos.map(l => l.replace("https://sevenseers.id", ""));
+      const cleanedLogos = logos
+        .filter(logo => {
+          // Filter hanya string yang valid dan tidak kosong
+          return logo && typeof logo === 'string' && logo.trim() !== '';
+        })
+        .map(logo => {
+          const trimmedLogo = logo.trim();
+          // Remove base URL jika ada (support http dan https)
+          return trimmedLogo
+            .replace(/^https?:\/\/sevenseers\.id/, '')
+            .replace(/^https?:\/\/www\.sevenseers\.id/, '');
+        });
+
+      client.logos = cleanedLogos;
     }
 
     await client.save();
 
+    // Return response dengan base URL lengkap
     const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
-    const allLogos = client.logos.map((logo) =>
-      logo.startsWith("http") ? logo : `${baseUrl}${logo}`
-    );
+    const responseLogos = client.logos
+      .filter(logo => logo && typeof logo === 'string')
+      .map((logo) => logo.startsWith("http") ? logo : `${baseUrl}${logo}`);
 
     res.json({
       title: client.title,
-      logos: allLogos,
+      logos: responseLogos,
     });
   } catch (err) {
     console.error("Update ClientSection Error:", err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ 
+      message: err.message || "Failed to update client section" 
+    });
   }
 };
