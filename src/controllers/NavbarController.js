@@ -16,8 +16,8 @@ exports.getNavbar = async (req, res) => {
 
     res.json({
       logo: navbar.logo ? `${baseUrl}${navbar.logo}` : "",
-      ctaText: navbar.ctaText,
-      ctaLink: navbar.ctaLink,
+      ctaText: navbar.ctaText || "Get Started",
+      ctaLink: navbar.ctaLink || "/contact",
     });
   } catch (err) {
     console.error("Get Navbar Error:", err);
@@ -30,13 +30,14 @@ exports.updateNavbar = async (req, res) => {
   try {
     const { logo, ctaText, ctaLink } = req.body;
 
+    // Ambil data navbar yang ada, kalau nggak ada buat baru
     let navbar = await NavbarSection.findOne();
     if (!navbar) navbar = new NavbarSection();
 
-    navbar.logo = logo
-      ? logo.replace("https://sevenseers.id", "")
-      : navbar.logo;
+    // ✅ Simpan logo baru apa adanya (baik path relatif /uploads/xxx.png atau full URL)
+    navbar.logo = logo || navbar.logo;
 
+    // Update CTA text dan link
     navbar.ctaText = ctaText || navbar.ctaText;
     navbar.ctaLink = ctaLink || navbar.ctaLink;
 
