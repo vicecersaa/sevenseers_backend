@@ -1,5 +1,16 @@
 const HeroSection = require('../models/HeroSection');
 
+// Helper: bikin path relatif dari URL
+const toRelativePath = (url) => {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    return u.pathname; // ambil path saja
+  } catch (err) {
+    return url; // kalau bukan URL valid, simpan apa adanya
+  }
+};
+
 // ✅ GET hero section
 exports.getHeroSection = async (req, res) => {
   try {
@@ -37,20 +48,16 @@ exports.updateHeroSection = async (req, res) => {
     let hero = await HeroSection.findOne();
     if (!hero) hero = new HeroSection();
 
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
+
     // Update fields
     hero.caption = caption || hero.caption;
     hero.ctaText = ctaText || hero.ctaText;
     hero.ctaLink = ctaLink || hero.ctaLink;
-    hero.videoSrc = videoSrc
-      ? videoSrc.replace("http://localhost:5000", "")
-      : hero.videoSrc;
-    hero.logoSrc = logoSrc
-      ? logoSrc.replace("http://localhost:5000", "")
-      : hero.logoSrc;
+    hero.videoSrc = videoSrc ? toRelativePath(videoSrc) : hero.videoSrc;
+    hero.logoSrc = logoSrc ? toRelativePath(logoSrc) : hero.logoSrc;
 
     await hero.save();
-
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
 
     res.json({
       videoSrc: hero.videoSrc ? `${baseUrl}${hero.videoSrc}` : "",
