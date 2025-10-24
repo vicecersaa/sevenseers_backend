@@ -6,6 +6,6 @@ const { getClientSection, updateClientSection } = require('../controllers/Client
 router.get('/', getClientSection);
 
 // UPDATE client section data
-router.put('/', updateClientSection);
+router.post('/', updateClientSection);
 
 module.exports = router;
