@@ -1,6 +1,4 @@
 const TeamMemberSection = require('../models/TeamMemberSection');
-const path = require('path');
-const fs = require('fs');
 
 // ✅ GET Team Member Section
 exports.getTeamMemberSection = async (req, res) => {
@@ -16,9 +14,10 @@ exports.getTeamMemberSection = async (req, res) => {
       });
     }
 
-    // update URL supaya bisa diakses dari frontend
+    // Tambahkan baseUrl ke photo jika ada
     const membersWithFullPath = section.members.map((m) => ({
-      ...m._doc,
+      name: m.name,
+      role: m.role,
       photo: m.photo ? `${baseUrl}${m.photo}` : "",
     }));
 
@@ -45,21 +44,33 @@ exports.updateTeamMemberSection = async (req, res) => {
     section.caption = caption || section.caption;
 
     if (members && Array.isArray(members)) {
-      // Map member, pastikan photo path mulai dari /uploads/
-      section.members = members.map((m) => ({
-        name: m.name || "",
-        role: m.role || "",
-        photo: m.photo
-          ? m.photo.replace("https://sevenseers.id/uploads/team/", "/uploads/")
-          : "",
-      }));
+      section.members = members.map((m) => {
+        let photoPath = m.photo || "";
+
+        // Jika user mengirim URL penuh, ambil hanya path relatif
+        if (photoPath.startsWith("http")) {
+          try {
+            const urlObj = new URL(photoPath);
+            photoPath = urlObj.pathname; // hanya /uploads/xxxx.jfif
+          } catch (e) {
+            console.error("Invalid URL:", photoPath);
+          }
+        }
+
+        return {
+          name: m.name || "",
+          role: m.role || "",
+          photo: photoPath, // simpan path relatif saja
+        };
+      });
     }
 
     await section.save();
 
     const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
     const membersWithFullPath = section.members.map((m) => ({
-      ...m._doc,
+      name: m.name,
+      role: m.role,
       photo: m.photo ? `${baseUrl}${m.photo}` : "",
     }));
 
