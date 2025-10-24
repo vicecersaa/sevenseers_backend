@@ -1,18 +1,18 @@
 const SiteMeta = require('../models/SiteMeta');
 
-exports.getMetaByPageId = async (req, res) => {
-  const { pageId } = req.params;
+// GET meta homepage
+exports.getMeta = async (req, res) => {
   try {
-    let meta = await SiteMeta.findOne({ pageId });
+    let meta = await SiteMeta.findOne(); // ambil dokumen pertama
     if (!meta) {
-      // Kalau belum ada, return default kosong
-      meta = {
+      meta = new SiteMeta({
         title: "",
         description: "",
         favicon: "",
         author: "",
         keywords: "",
-      };
+      });
+      await meta.save();
     }
     res.json(meta);
   } catch (err) {
@@ -20,12 +20,12 @@ exports.getMetaByPageId = async (req, res) => {
   }
 };
 
-exports.updateMetaByPageId = async (req, res) => {
-  const { pageId } = req.params;
+// UPDATE meta homepage
+exports.updateMeta = async (req, res) => {
   try {
-    let meta = await SiteMeta.findOne({ pageId });
+    let meta = await SiteMeta.findOne(); // ambil dokumen pertama
     if (!meta) {
-      meta = new SiteMeta({ pageId, ...req.body });
+      meta = new SiteMeta(req.body);
     } else {
       Object.assign(meta, req.body);
       meta.updatedAt = new Date();
