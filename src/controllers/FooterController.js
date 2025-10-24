@@ -61,13 +61,13 @@ exports.updateFooter = async (req, res) => {
 
     if (bottomFooter) {
       footer.bottomFooter.logo = bottomFooter.logo
-        ? bottomFooter.logo.replace("http://localhost:5000", "")
+        ? bottomFooter.logo.replace("https://sevenseers.id", "")
         : footer.bottomFooter.logo;
       footer.bottomFooter.caption = bottomFooter.caption || footer.bottomFooter.caption;
 
       if (bottomFooter.socialLinks) {
         footer.bottomFooter.socialLinks = bottomFooter.socialLinks.map((link) => ({
-          logo: link.logo ? link.logo.replace("http://localhost:5000", "") : "",
+          logo: link.logo ? link.logo.replace("https://sevenseers.id", "") : "",
           link: link.link || "",
         }));
       }
