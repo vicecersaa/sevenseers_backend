@@ -40,7 +40,7 @@ async function uploadToFtp(localFilePath, remoteFileName) {
 }
 
 // Endpoint POST /api/upload
-router.put('/', upload.single('file'), async (req, res) => {
+router.post('/', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
   const localPath = req.file.path;
@@ -54,6 +54,7 @@ router.put('/', upload.single('file'), async (req, res) => {
 
     // URL file yang bisa diakses publik
     const fileUrl = `https://sevenseers.id/uploads/${remoteFileName}`;
+
     res.json({ success: true, fileUrl });
   } catch (err) {
     // Hapus file lokal kalau gagal

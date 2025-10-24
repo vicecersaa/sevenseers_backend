@@ -15,7 +15,7 @@ exports.getClientSection = async (req, res) => {
 
     // Filter dan map logos dengan aman
     const logos = client.logos
-      .filter(logo => logo && typeof logo === 'string') // Filter null/undefined
+      .filter(logo => logo && typeof logo === 'string')
       .map((logo) => logo.startsWith("http") ? logo : `${baseUrl}${logo}`);
 
     res.json({
