@@ -4,7 +4,7 @@ const FooterSection = require('../models/FooterSection');
 exports.getFooter = async (req, res) => {
   try {
     const footer = await FooterSection.findOne();
-    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     if (!footer) {
       return res.json({
