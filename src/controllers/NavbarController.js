@@ -37,7 +37,7 @@ exports.updateNavbar = async (req, res) => {
     let navbar = await NavbarSection.findOne();
     if (!navbar) navbar = new NavbarSection();
 
-    // Simpan logo apa adanya (baik relative path atau full URL)
+    // Simpan logo apa adanya (relative path atau full URL)
     navbar.logo = logo || navbar.logo;
     navbar.ctaText = ctaText || navbar.ctaText;
     navbar.ctaLink = ctaLink || navbar.ctaLink;
