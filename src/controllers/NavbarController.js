@@ -15,7 +15,11 @@ exports.getNavbar = async (req, res) => {
     }
 
     res.json({
-      logo: navbar.logo ? `${baseUrl}${navbar.logo}` : "",
+      logo: navbar.logo
+        ? navbar.logo.startsWith("http") // kalau sudah full URL, pakai apa adanya
+          ? navbar.logo
+          : `${baseUrl}${navbar.logo}`
+        : "",
       ctaText: navbar.ctaText || "Get Started",
       ctaLink: navbar.ctaLink || "/contact",
     });
@@ -33,7 +37,7 @@ exports.updateNavbar = async (req, res) => {
     let navbar = await NavbarSection.findOne();
     if (!navbar) navbar = new NavbarSection();
 
-    // Simpan logo baru apa adanya (relative path /uploads/xxx.png)
+    // Simpan logo apa adanya (baik relative path atau full URL)
     navbar.logo = logo || navbar.logo;
     navbar.ctaText = ctaText || navbar.ctaText;
     navbar.ctaLink = ctaLink || navbar.ctaLink;
@@ -43,7 +47,11 @@ exports.updateNavbar = async (req, res) => {
     const baseUrl = process.env.BASE_URL || "https://sevenseers.id";
 
     res.json({
-      logo: navbar.logo ? `${baseUrl}${navbar.logo}` : "",
+      logo: navbar.logo
+        ? navbar.logo.startsWith("http")
+          ? navbar.logo
+          : `${baseUrl}${navbar.logo}`
+        : "",
       ctaText: navbar.ctaText,
       ctaLink: navbar.ctaLink,
     });
