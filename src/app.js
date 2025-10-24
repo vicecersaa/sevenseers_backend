@@ -53,7 +53,7 @@ app.use('/api/bring-your-brand', require('./routes/BringYourBrandRoutes'));
 app.use("/api/subpages", require('./routes/Subpages'));
 app.use("/api/navbar", require('./routes/NavbarRoutes'));
 app.use("/api/footer", require('./routes/FooterRoutes'));
-app.use("/api/site/meta/:pageId", require('./routes/siteRoutes'));
+app.use("/api/site/meta/", require('./routes/siteRoutes'));
 
 
 // Error handler
