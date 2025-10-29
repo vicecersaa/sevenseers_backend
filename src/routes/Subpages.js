@@ -64,7 +64,7 @@ router.post("/", async (req, res) => {
 // ✅ PUT untuk update subpage
 router.put("/:id", async (req, res) => {
   try {
-    const { title, content, bannerImage, headTitle, headCaption, cards } = req.body;
+    const { title, content, bannerImage, headTitle, headCaption, cards, slug } = req.body;
 
     const updatedPage = await Subpage.findByIdAndUpdate(
       req.params.id,
