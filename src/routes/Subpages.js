@@ -70,6 +70,7 @@ router.put("/:id", async (req, res) => {
       req.params.id,
       {
         title,
+        slug,
         content,
         bannerImage,
         headTitle,
