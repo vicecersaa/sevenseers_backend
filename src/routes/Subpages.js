@@ -1,18 +1,19 @@
-// src/routes/Subpages.js
 const express = require("express");
 const Subpage = require("../models/Subpage");
 
 const router = express.Router();
 
-// ✅ GET semua subpages
+
+// ✅ GET semua subpages (urut berdasarkan "order")
 router.get("/", async (req, res) => {
   try {
-    const pages = await Subpage.find();
+    const pages = await Subpage.find().sort({ order: 1 });
     res.json(pages);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // ✅ GET satu subpage by slug (untuk frontend)
 router.get("/slug/:slug", async (req, res) => {
@@ -25,6 +26,7 @@ router.get("/slug/:slug", async (req, res) => {
   }
 });
 
+
 // ✅ GET satu subpage by ID (untuk dashboard editor)
 router.get("/:id", async (req, res) => {
   try {
@@ -36,10 +38,24 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+
 // ✅ POST buat tambah subpage baru
 router.post("/", async (req, res) => {
   try {
-    const { slug, title, content, bannerImage, headTitle, headCaption, cards } = req.body;
+    const {
+      slug,
+      title,
+      content,
+      bannerImage,
+      headTitle,
+      headCaption,
+      cards,
+      order,
+    } = req.body;
+
+    // ambil urutan terbesar kalau ga dikirim dari frontend
+    const maxOrder = await Subpage.findOne().sort("-order").lean();
+    const nextOrder = order ?? (maxOrder ? maxOrder.order + 1 : 1);
 
     const newPage = new Subpage({
       slug,
@@ -49,6 +65,7 @@ router.post("/", async (req, res) => {
       headTitle,
       headCaption,
       cards: cards || [],
+      order: nextOrder,
     });
 
     await newPage.save();
@@ -57,14 +74,25 @@ router.post("/", async (req, res) => {
       data: newPage,
     });
   } catch (error) {
+    console.error(error);
     res.status(400).json({ message: error.message });
   }
 });
 
+
 // ✅ PUT untuk update subpage
 router.put("/:id", async (req, res) => {
   try {
-    const { title, content, bannerImage, headTitle, headCaption, cards, slug } = req.body;
+    const {
+      title,
+      slug,
+      content,
+      bannerImage,
+      headTitle,
+      headCaption,
+      cards,
+      order,
+    } = req.body;
 
     const updatedPage = await Subpage.findByIdAndUpdate(
       req.params.id,
@@ -76,16 +104,47 @@ router.put("/:id", async (req, res) => {
         headTitle,
         headCaption,
         cards: cards || [],
+        order,
       },
-      { new: true } // biar return data yang udah di-update
+      { new: true }
     );
 
-    if (!updatedPage) return res.status(404).json({ message: "Subpage not found" });
-    res.json({ message: "Subpage updated successfully", data: updatedPage });
+    if (!updatedPage)
+      return res.status(404).json({ message: "Subpage not found" });
+
+    res.json({
+      message: "Subpage updated successfully",
+      data: updatedPage,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
+
+
+// ✅ PATCH /reorder — ubah urutan semua subpages
+router.put("/reorder", async (req, res) => {
+  try {
+    const { subpages } = req.body; // array of { id, order }
+
+    if (!Array.isArray(subpages))
+      return res.status(400).json({ message: "Invalid data format" });
+
+    const bulkOps = subpages.map((item) => ({
+      updateOne: {
+        filter: { _id: item.id },
+        update: { order: item.order },
+      },
+    }));
+
+    await Subpage.bulkWrite(bulkOps);
+
+    res.json({ message: "Subpages reordered successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 // ✅ DELETE subpage
 router.delete("/:id", async (req, res) => {
