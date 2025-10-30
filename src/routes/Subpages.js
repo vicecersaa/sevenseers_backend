@@ -42,7 +42,7 @@ router.get("/:id", async (req, res) => {
 });
 
 /* ==============================
-   ✅ POST buat tambah subpage baru
+   ✅ POST buat tambah subpage baru (auto order)
 ============================== */
 router.post("/", async (req, res) => {
   try {
@@ -57,16 +57,18 @@ router.post("/", async (req, res) => {
       order,
     } = req.body;
 
-    // 🔹 Cari order terbesar
-    const maxOrder = await Subpage.findOne().sort("-order").lean();
-    const nextOrder = order ?? (maxOrder ? maxOrder.order + 1 : 1);
+    const total = await Subpage.countDocuments();
 
-    // 🔹 Cek duplikat order
-    const duplicateOrder = await Subpage.findOne({ order: nextOrder });
-    if (duplicateOrder) {
-      return res
-        .status(400)
-        .json({ message: `Order ${nextOrder} is already used.` });
+    // Jika user tidak set order → taruh paling bawah
+    let newOrder = order ?? total + 1;
+
+    // Jika user set order manual → geser urutan setelahnya
+    if (order && order <= total) {
+      await Subpage.updateMany(
+        { order: { $gte: order } },
+        { $inc: { order: 1 } }
+      );
+      newOrder = order;
     }
 
     const newPage = new Subpage({
@@ -77,13 +79,15 @@ router.post("/", async (req, res) => {
       headTitle,
       headCaption,
       cards: cards || [],
-      order: nextOrder,
+      order: newOrder,
     });
 
     await newPage.save();
+
+    const all = await Subpage.find().sort({ order: 1 });
     res.status(201).json({
       message: "Subpage created successfully",
-      data: newPage,
+      data: all,
     });
   } catch (error) {
     console.error("POST /subpages error:", error);
@@ -92,7 +96,7 @@ router.post("/", async (req, res) => {
 });
 
 /* ==============================
-   ✅ PUT untuk update subpage (termasuk order)
+   ✅ PUT update subpage (termasuk ubah order)
 ============================== */
 router.put("/:id", async (req, res) => {
   try {
@@ -107,40 +111,43 @@ router.put("/:id", async (req, res) => {
       order,
     } = req.body;
 
-    // 🔹 Cegah duplikat order
-    if (order !== undefined) {
-      const duplicate = await Subpage.findOne({
-        order,
-        _id: { $ne: req.params.id },
-      });
-      if (duplicate) {
-        return res
-          .status(400)
-          .json({ message: `Order ${order} already used by ${duplicate.title}` });
+    const page = await Subpage.findById(req.params.id);
+    if (!page) return res.status(404).json({ message: "Subpage not found" });
+
+    const total = await Subpage.countDocuments();
+
+    // 🔹 Jika order berubah, sesuaikan urutan lain
+    if (order && order !== page.order) {
+      if (order < page.order) {
+        // Geser ke bawah (naikkan urutan item di antara)
+        await Subpage.updateMany(
+          { order: { $gte: order, $lt: page.order } },
+          { $inc: { order: 1 } }
+        );
+      } else {
+        // Geser ke atas (turunkan urutan item di antara)
+        await Subpage.updateMany(
+          { order: { $lte: order, $gt: page.order } },
+          { $inc: { order: -1 } }
+        );
       }
+      page.order = order;
     }
 
-    const updatedPage = await Subpage.findByIdAndUpdate(
-      req.params.id,
-      {
-        title,
-        slug,
-        content,
-        bannerImage,
-        headTitle,
-        headCaption,
-        cards: cards || [],
-        order,
-      },
-      { new: true }
-    );
+    page.title = title ?? page.title;
+    page.slug = slug ?? page.slug;
+    page.content = content ?? page.content;
+    page.bannerImage = bannerImage ?? page.bannerImage;
+    page.headTitle = headTitle ?? page.headTitle;
+    page.headCaption = headCaption ?? page.headCaption;
+    page.cards = cards ?? page.cards;
 
-    if (!updatedPage)
-      return res.status(404).json({ message: "Subpage not found" });
+    await page.save();
 
+    const all = await Subpage.find().sort({ order: 1 });
     res.json({
       message: "Subpage updated successfully",
-      data: updatedPage,
+      data: all,
     });
   } catch (error) {
     console.error("PUT /subpages/:id error:", error);
@@ -149,14 +156,13 @@ router.put("/:id", async (req, res) => {
 });
 
 /* ==============================
-   ✅ PATCH /reorder — ubah urutan semua subpages
+   ✅ PATCH /reorder — ubah urutan manual dari dashboard
 ============================== */
 router.put("/reorder", async (req, res) => {
   try {
-    const { subpages } = req.body; // array of { id, order }
-
+    const { subpages } = req.body; // [{id, order}]
     if (!Array.isArray(subpages))
-      return res.status(400).json({ message: "Invalid data format" });
+      return res.status(400).json({ message: "Invalid format" });
 
     const bulkOps = subpages.map((item) => ({
       updateOne: {
@@ -167,7 +173,8 @@ router.put("/reorder", async (req, res) => {
 
     await Subpage.bulkWrite(bulkOps);
 
-    res.json({ message: "Subpages reordered successfully" });
+    const all = await Subpage.find().sort({ order: 1 });
+    res.json({ message: "Reordered successfully", data: all });
   } catch (error) {
     console.error("PUT /subpages/reorder error:", error);
     res.status(500).json({ message: error.message });
@@ -175,21 +182,21 @@ router.put("/reorder", async (req, res) => {
 });
 
 /* ==============================
-   ✅ DELETE subpage (reorder otomatis setelah delete)
+   ✅ DELETE subpage + auto normalize order
 ============================== */
 router.delete("/:id", async (req, res) => {
   try {
     const deleted = await Subpage.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Subpage not found" });
 
-    // 🔹 Setelah delete, rapihin urutan lagi
+    // Rapiin ulang order setelah delete
     const pages = await Subpage.find().sort({ order: 1 });
     for (let i = 0; i < pages.length; i++) {
       pages[i].order = i + 1;
       await pages[i].save();
     }
 
-    res.json({ message: "Subpage deleted and reordered successfully" });
+    res.json({ message: "Deleted & reordered successfully", data: pages });
   } catch (error) {
     console.error("DELETE /subpages error:", error);
     res.status(500).json({ message: error.message });
