@@ -85,7 +85,7 @@ exports.getAdminProfile = async (req, res) => {
 // ==========================
 exports.updateOwnPassword = async (req, res) => {
   try {
-    if (!['admin', 'superadmin'].includes(req.user.role)) {
+    if (!['admin', 'superadmin', 'editor'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Editors cannot change password' });
     }
 
