@@ -52,7 +52,7 @@ exports.loginAdmin = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-    if (!['admin', 'superadmin'].includes(user.role))
+    if (!['admin', 'superadmin', 'editor'].includes(user.role))
       return res.status(403).json({ message: 'Access denied' });
 
     res.json({
